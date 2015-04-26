@@ -1,0 +1,70 @@
+---
+title: "Machine Learning Project"
+author: "C. Newcombe"
+date: "Sunday, April 26, 2015"
+output: pdf_document
+---
+
+# 1. Build the Model
+
+* Load the required libraries.
+```{r}
+library(caret)
+library(randomForest)
+```
+
+* Download the training and test sets to the working directory.
+```{r, eval=FALSE}
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile="trainproj.csv")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", destfile="testproj.csv")
+```
+
+* Load the training and test data sets.
+```{r}
+trainproj <- read.csv("trainproj.csv")
+testproj <- read.csv("testproj.csv")
+```
+
+* Remove extra variables from the training set.  We don't need any of the summary statistics (e.g., columns like min, max, var, stddev, etc.). Create a new data frame containing only the important variables (direct measurements and outcome columns).
+```{r}
+train2 <- cbind(trainproj[, grep("^accel", names(trainproj))],
+  trainproj[, grep("^magnet", names(trainproj))],
+  trainproj[, grep("^roll", names(trainproj))],
+  trainproj[, grep("^pitch", names(trainproj))], 
+  trainproj[, grep("^yaw", names(trainproj))],
+  trainproj$classe)
+colnames(train2)[37] <- "classe"
+```
+
+* Split `train2` dataset into a training set (80%) and a test set (20%) for cross-validation.
+```{r}
+inTrain <- createDataPartition(y=train2$classe, p=0.8, list=FALSE)
+train3 <- train2[inTrain,]
+cvtest <- train2[-inTrain,]
+```
+
+* Create the random forest model.
+```{r}
+model <- randomForest(classe ~ . , data=train3)
+```
+
+# 2. Cross Validation
+
+* Compare the model prediction to the results of the `cvtest` data set.
+```{r}
+cvpred <- predict(model, cvtest)
+confusionMatrix(cvpred, cvtest$classe)
+```
+
+# 3. Out-of-Sample Error
+* Given by the `confusionMatrix()` calculation in #2, the out-of-sample accuracy is 99.52%.  Therefore, the error is 0.48%.
+* Given the accuracy/minimal error of the results from the cross-validation, the model type/variables do not need to be adjusted any further.
+
+
+# 4. Predict Outcomes
+
+* Use the `predict()` function with the test set.
+```{r}
+predict(model, testproj)
+```
+

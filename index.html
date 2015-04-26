@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="Machine-learning-project-repo : course project">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Machine-learning-project-repo</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/newcombe/Machine-Learning-Project-Repo">View on GitHub</a>
+
+          <h1 id="project_title">Machine-learning-project-repo</h1>
+          <h2 id="project_tagline">course project</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/newcombe/Machine-Learning-Project-Repo/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/newcombe/Machine-Learning-Project-Repo/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p>&lt;!DOCTYPE html&gt;</p>
+
+<p></p>
+
+<p></p>
+
+<p>
+
+</p>
+
+<p></p>
+
+<p></p>Machine Learning Project
+
+
+
+<p>
+</p>
+
+
+
+
+
+
+
+code{white-space: pre;}
+
+<p></p>
+
+
+
+
+  pre:not([class]) {
+    background-color: white;
+  }
+
+
+
+
+<p></p>
+
+<p></p>
+
+
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img { 
+  max-width:100%; 
+  height: auto; 
+}
+
+
+<div>
+
+
+<div id="header">
+<h1>
+<a id="machine-learning-project" class="anchor" href="#machine-learning-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Machine Learning Project</h1>
+<h4>
+<a id="c-newcombe" class="anchor" href="#c-newcombe" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>C. Newcombe</em>
+</h4>
+<h4>
+<a id="sunday-april-26-2015" class="anchor" href="#sunday-april-26-2015" aria-hidden="true"><span class="octicon octicon-link"></span></a><em>Sunday, April 26, 2015</em>
+</h4>
+</div>
+
+<div id="build-the-model">
+<h1>
+<a id="1-build-the-model" class="anchor" href="#1-build-the-model" aria-hidden="true"><span class="octicon octicon-link"></span></a>1. Build the Model</h1>
+<ul>
+<li>Load the required libraries.</li>
+</ul>
+<pre><code>library(caret)</code></pre>
+<pre><code>## Loading required package: lattice
+## Loading required package: ggplot2</code></pre>
+<pre><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-10
+## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<ul>
+<li>Download the training and test sets to the working directory.</li>
+</ul>
+<pre><code>download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", destfile="trainproj.csv")
+download.file("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", destfile="testproj.csv")</code></pre>
+<ul>
+<li>Load the training and test data sets.</li>
+</ul>
+<pre><code>trainproj &lt;- read.csv("trainproj.csv")
+testproj &lt;- read.csv("testproj.csv")</code></pre>
+<ul>
+<li>Remove extra variables from the training set. We don’t need any of the summary statistics (e.g., columns like min, max, var, stddev, etc.). Create a new data frame containing only the important variables (direct measurements and outcome columns).</li>
+</ul>
+<pre><code>train2 &lt;- cbind(trainproj[, grep("^accel", names(trainproj))],
+  trainproj[, grep("^magnet", names(trainproj))],
+  trainproj[, grep("^roll", names(trainproj))],
+  trainproj[, grep("^pitch", names(trainproj))], 
+  trainproj[, grep("^yaw", names(trainproj))],
+  trainproj$classe)
+colnames(train2)[37] &lt;- "classe"</code></pre>
+<ul>
+<li>Split <code>train2</code> dataset into a training set (80%) and a test set (20%) for cross-validation.</li>
+</ul>
+<pre><code>inTrain &lt;- createDataPartition(y=train2$classe, p=0.8, list=FALSE)
+train3 &lt;- train2[inTrain,]
+cvtest &lt;- train2[-inTrain,]</code></pre>
+<ul>
+<li>Create the random forest model.</li>
+</ul>
+<pre><code>model &lt;- randomForest(classe ~ . , data=train3)</code></pre>
+</div>
+
+<div id="cross-validation">
+<h1>
+<a id="2-cross-validation" class="anchor" href="#2-cross-validation" aria-hidden="true"><span class="octicon octicon-link"></span></a>2. Cross Validation</h1>
+<ul>
+<li>Compare the model prediction to the results of the <code>cvtest</code> data set.</li>
+</ul>
+<pre><code>cvpred &lt;- predict(model, cvtest)
+confusionMatrix(cvpred, cvtest$classe)</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction    A    B    C    D    E
+##          A 1116    1    0    0    0
+##          B    0  754    4    0    0
+##          C    0    4  679    6    0
+##          D    0    0    1  637    2
+##          E    0    0    0    0  719
+## 
+## Overall Statistics
+##                                           
+##                Accuracy : 0.9954          
+##                  95% CI : (0.9928, 0.9973)
+##     No Information Rate : 0.2845          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16       
+##                                           
+##                   Kappa : 0.9942          
+##  Mcnemar's Test P-Value : NA              
+## 
+## Statistics by Class:
+## 
+##                      Class: A Class: B Class: C Class: D Class: E
+## Sensitivity            1.0000   0.9934   0.9927   0.9907   0.9972
+## Specificity            0.9996   0.9987   0.9969   0.9991   1.0000
+## Pos Pred Value         0.9991   0.9947   0.9855   0.9953   1.0000
+## Neg Pred Value         1.0000   0.9984   0.9985   0.9982   0.9994
+## Prevalence             0.2845   0.1935   0.1744   0.1639   0.1838
+## Detection Rate         0.2845   0.1922   0.1731   0.1624   0.1833
+## Detection Prevalence   0.2847   0.1932   0.1756   0.1631   0.1833
+## Balanced Accuracy      0.9998   0.9961   0.9948   0.9949   0.9986</code></pre>
+</div>
+
+<div id="out-of-sample-error">
+<h1>
+<a id="3-out-of-sample-error" class="anchor" href="#3-out-of-sample-error" aria-hidden="true"><span class="octicon octicon-link"></span></a>3. Out-of-Sample Error</h1>
+<ul>
+<li>Given by the <code>confusionMatrix()</code> calculation in #2, the out-of-sample accuracy is 99.52%. Therefore, the error is 0.48%.</li>
+<li>Given the accuracy/minimal error of the results from the cross-validation, the model type/variables do not need to be adjusted any further.</li>
+</ul>
+</div>
+
+<div id="predict-outcomes">
+<h1>
+<a id="4-predict-outcomes" class="anchor" href="#4-predict-outcomes" aria-hidden="true"><span class="octicon octicon-link"></span></a>4. Predict Outcomes</h1>
+<ul>
+<li>Use the <code>predict()</code> function with the test set.</li>
+</ul>
+<pre><code>predict(model, testproj)</code></pre>
+<pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  B  A  B  A  A  E  D  B  A  A  B  C  B  A  E  E  A  B  B  B 
+## Levels: A B C D E</code></pre>
+</div>
+
+<p></p>
+</div>
+
+
+
+
+
+
+
+<p>
+</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Machine-learning-project-repo maintained by <a href="https://github.com/newcombe">newcombe</a></p>
+        <p>Published with <a href="https://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
